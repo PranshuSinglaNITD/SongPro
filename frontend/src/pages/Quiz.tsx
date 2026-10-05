@@ -37,9 +37,12 @@ export default function Quiz() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      navigate('/dashboard'); 
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save profile. Please try again.');
+      navigate('/dashboard');
+    } catch (error: unknown) {
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setError(message || 'Failed to save profile. Please try again.');
     } finally {
       setLoading(false);
     }

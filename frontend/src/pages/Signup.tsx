@@ -17,7 +17,7 @@ export default function Signup() {
       
       // Save token and navigate
       localStorage.setItem('token', res.data.token);
-      navigate('/login'); // You can change this to navigate('/quiz') later when you build the personality quiz
+      navigate('/quiz'); // You can change this to navigate('/quiz') later when you build the personality quiz
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     }

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Music, Search, LogOut, Play, Sparkles } from 'lucide-react';
+import { Search, Play, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 interface Track {
@@ -11,16 +10,10 @@ interface Track {
 }
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,24 +32,37 @@ export default function Dashboard() {
       );
       
       setTracks(res.data.tracks);
-    } catch (err: any) {
-      setError('Failed to fetch recommendations. Is the Python AI engine running?');
+    } catch (error: unknown) {
+      if (axios.isAxiosError<{ error?: string; message?: string }>(error)) {
+        const status = error.response?.status;
+        const responseMessage = error.response?.data?.error || error.response?.data?.message;
+        setError(
+          responseMessage ||
+          (status === 401
+            ? 'Your session has expired. Please log in again.'
+            : error.response
+              ? 'The recommendation request failed. Check the server logs for details.'
+              : 'Could not reach the SongPro API. Make sure the backend is running.')
+        );
+      } else {
+        setError('An unexpected error occurred while fetching recommendations.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="relative min-h-screen bg-gray-50 text-gray-900 transition-colors dark:bg-black dark:text-white">
       {/* Background Glow */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-600/20 rounded-full mix-blend-screen filter blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full mix-blend-screen filter blur-[100px] pointer-events-none"></div>
+      <div className="pointer-events-none absolute left-1/4 top-0 h-96 w-96 rounded-full bg-rose-300/30 mix-blend-multiply blur-[100px] dark:bg-rose-600/20 dark:mix-blend-screen"></div>
+      <div className="pointer-events-none absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-purple-300/30 mix-blend-multiply blur-[100px] dark:bg-purple-600/20 dark:mix-blend-screen"></div>
 
       <main className="relative z-10 max-w-5xl mx-auto px-6 py-12">
         {/* Search / Vibe Input */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">What's your vibe right now?</h1>
-          <p className="text-gray-400 text-lg mb-8">Describe your mood, activity, or the aesthetic you want.</p>
+          <p className="mb-8 text-lg text-gray-600 dark:text-gray-400">Describe your mood, activity, or the aesthetic you want.</p>
           
           <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -66,7 +72,7 @@ export default function Dashboard() {
               type="text" 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-12 pr-32 py-4 bg-zinc-900/80 border border-zinc-700 rounded-full focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-white placeholder-gray-500 text-lg backdrop-blur-sm transition shadow-xl"
+              className="w-full rounded-full border border-gray-300 bg-white/90 py-4 pl-12 pr-32 text-lg text-gray-900 shadow-xl backdrop-blur-sm transition placeholder:text-gray-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-white dark:placeholder:text-gray-500"
               placeholder="e.g. 'Late night driving' or 'Energetic gym beats'"
             />
             <button 
@@ -83,18 +89,18 @@ export default function Dashboard() {
         {/* Results Grid */}
         {tracks.length > 0 && (
           <div className="animate-fade-in-up">
-            <h2 className="text-2xl font-semibold mb-6 border-b border-zinc-800 pb-2">Your AI Playlist</h2>
+            <h2 className="mb-6 border-b border-gray-200 pb-2 text-2xl font-semibold dark:border-zinc-800">Your AI Playlist</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {tracks.map((track, idx) => (
-                <div key={idx} className="group flex items-center gap-4 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition cursor-pointer">
-                  <div className="w-12 h-12 rounded-md bg-zinc-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-black transition">
+                <div key={idx} className="group flex cursor-pointer items-center gap-4 rounded-xl border border-gray-200 bg-white/80 p-4 transition hover:bg-gray-100 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 transition group-hover:bg-amber-500 group-hover:text-black dark:bg-zinc-800">
                     <Play size={20} className="ml-1" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium truncate">{track.track_name}</p>
-                    <p className="text-gray-400 text-sm truncate">{track.artists}</p>
+                    <p className="truncate font-medium text-gray-900 dark:text-white">{track.track_name}</p>
+                    <p className="truncate text-sm text-gray-600 dark:text-gray-400">{track.artists}</p>
                   </div>
-                  <div className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-gray-300">
+                  <div className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-zinc-800 dark:text-gray-300">
                     {track.genre}
                   </div>
                 </div>

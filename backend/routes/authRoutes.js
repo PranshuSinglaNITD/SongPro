@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -73,7 +74,27 @@ router.post('/login', async (req, res) => {
 router.put('/personality', auth, async (req, res) => {
   try {
     const { oceanScores } = req.body;
-    
+
+    const scoreNames = [
+      'openness',
+      'conscientiousness',
+      'extraversion',
+      'agreeableness',
+      'neuroticism',
+    ];
+    if (
+      !oceanScores ||
+      typeof oceanScores !== 'object' ||
+      scoreNames.some((name) => (
+        typeof oceanScores[name] !== 'number' ||
+        !Number.isFinite(oceanScores[name]) ||
+        oceanScores[name] < 0 ||
+        oceanScores[name] > 1
+      ))
+    ) {
+      return res.status(400).json({ message: 'Valid personality scores are required' });
+    }
+
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -82,7 +103,8 @@ router.put('/personality', auth, async (req, res) => {
 
     res.json({ success: true, message: 'Personality profile saved successfully.' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Saving personality profile failed:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

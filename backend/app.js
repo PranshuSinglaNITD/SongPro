@@ -7,7 +7,9 @@ const app=express();
 app.use(cors());
 app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
+const recommendationRoutes=require('./routes/recommendations.js')
 app.use('/api/auth', authRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'SongPro API is running' });

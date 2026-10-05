@@ -6,15 +6,17 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import SidebarLayout from './components/SidebarLayout';
 import Quiz from './pages/Quiz';
+import Profile from './pages/Profile';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   return (
+    <ThemeProvider>
     <Router>
       <Routes>
         {/* Auth routes without sidebar */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Landing />} />
         <Route 
           path="/quiz" 
           element={
@@ -34,9 +36,18 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </Router>
+    </ThemeProvider>
   );
 }
 
