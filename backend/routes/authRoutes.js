@@ -8,10 +8,17 @@ const router = express.Router();
 // @route POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, oceanScores } = req.body;
+    const { name, email, password } = req.body;
+    if (
+      typeof name !== 'string' || !name.trim() ||
+      typeof email !== 'string' || !email.trim() ||
+      typeof password !== 'string' || !password
+    ) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
 
     // Check if user exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.trim() });
     if (user) return res.status(400).json({ message: 'User already exists' });
 
     // Hash password
@@ -22,8 +29,7 @@ router.post('/register', async (req, res) => {
     user = new User({
       name,
       email,
-      password: hashedPassword,
-      oceanScores: oceanScores || undefined // Fallback to schema defaults if not provided
+      password: hashedPassword
     });
 
     await user.save();
@@ -31,9 +37,10 @@ router.post('/register', async (req, res) => {
     // Generate token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
-    res.status(201).json({ token, user: { id: user._id, name: user.name, oceanScores: user.oceanScores } });
+    res.status(201).json({ token, user: { id: user._id, name: user.name } });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Registration failed:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -41,9 +48,12 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
     // Verify user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.trim() });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     // Verify password
@@ -54,6 +64,23 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({ token, user: { id: user._id, name: user.name, oceanScores: user.oceanScores } });
+  } catch (error) {
+    console.error('Login failed:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.put('/personality', auth, async (req, res) => {
+  try {
+    const { oceanScores } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.oceanScores = oceanScores;
+    await user.save();
+
+    res.json({ success: true, message: 'Personality profile saved successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
