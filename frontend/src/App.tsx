@@ -9,6 +9,7 @@ import Quiz from './pages/Quiz';
 import Profile from './pages/Profile';
 import { ThemeProvider } from './context/ThemeContext';
 import MoodProgression from './pages/MoodProgression';
+import { PlayerProvider } from './context/PlayerContext';
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
           } 
         />
         {/* Routes wrapped in the Sidebar Layout */}
-        <Route element={<SidebarLayout />}>
+        <Route element={<PlayerProvider><SidebarLayout /></PlayerProvider>}>
           <Route path="/" element={<Landing />} />
           <Route 
             path="/dashboard" 

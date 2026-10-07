@@ -1,16 +1,10 @@
 import { useState } from 'react';
 import { Sparkles, ArrowDown, Play, Activity } from 'lucide-react';
 import axios from 'axios';
-
-interface Track {
-  track_id: string;
-  track_name: string;
-  artists: string;
-  genre: string;
-  energy: number;
-}
+import { usePlayer, type Track } from '../context/PlayerContext';
 
 export default function MoodProgression() {
+  const { loadJourney } = usePlayer();
   const [startQuery, setStartQuery] = useState('');
   const [endQuery, setEndQuery] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -32,8 +26,10 @@ export default function MoodProgression() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setTracks(res.data.tracks);
-    } catch (err) {
+      const generatedTracks = res.data.tracks as Track[];
+      setTracks(generatedTracks);
+      loadJourney(generatedTracks);
+    } catch {
       setError('Failed to generate journey. Ensure ML engine is running.');
     } finally {
       setLoading(false);
@@ -108,7 +104,12 @@ export default function MoodProgression() {
                     <span className="text-xs font-mono text-gray-400 flex items-center gap-1">
                       <Activity size={14}/> {track.energy.toFixed(2)} Energy
                     </span>
-                    <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-black transition">
+                    <button
+                      type="button"
+                      onClick={() => loadJourney(tracks, idx)}
+                      aria-label={`Play ${track.track_name}`}
+                      className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-black transition"
+                    >
                       <Play size={16} className="ml-1" />
                     </button>
                   </div>

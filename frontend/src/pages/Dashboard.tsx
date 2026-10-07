@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { Search, Play, Sparkles } from 'lucide-react';
 import axios from 'axios';
+import { usePlayer, type Track } from '../context/PlayerContext';
 
-interface Track {
-  track_id: string;
-  track_name: string;
-  artists: string;
-  genre: string;
-}
+type RecommendedTrack = Track & { genre?: string };
 
 export default function Dashboard() {
+  const { loadJourney } = usePlayer();
   const [query, setQuery] = useState('');
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [tracks, setTracks] = useState<RecommendedTrack[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,13 +22,14 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem('token');
       // Request recommendations from Node.js, sending the current hour
-      const res = await axios.post(
+      const res = await axios.post<{ tracks: RecommendedTrack[] }>(
         'http://localhost:3000/api/recommendations', 
         { query, hourOfDay: new Date().getHours() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       setTracks(res.data.tracks);
+      loadJourney(res.data.tracks);
     } catch (error: unknown) {
       if (axios.isAxiosError<{ error?: string; message?: string }>(error)) {
         const status = error.response?.status;
@@ -92,17 +90,24 @@ export default function Dashboard() {
             <h2 className="mb-6 border-b border-gray-200 pb-2 text-2xl font-semibold dark:border-zinc-800">Your AI Playlist</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {tracks.map((track, idx) => (
-                <div key={idx} className="group flex cursor-pointer items-center gap-4 rounded-xl border border-gray-200 bg-white/80 p-4 transition hover:bg-gray-100 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 transition group-hover:bg-amber-500 group-hover:text-black dark:bg-zinc-800">
+                <div key={track.track_id} className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white/80 p-4 transition hover:bg-gray-100 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => loadJourney(tracks, idx)}
+                    aria-label={`Play ${track.track_name}`}
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gray-100 transition group-hover:bg-amber-500 group-hover:text-black dark:bg-zinc-800"
+                  >
                     <Play size={20} className="ml-1" />
-                  </div>
+                  </button>
                   <div className="flex-1 min-w-0">
                     <p className="truncate font-medium text-gray-900 dark:text-white">{track.track_name}</p>
                     <p className="truncate text-sm text-gray-600 dark:text-gray-400">{track.artists}</p>
                   </div>
-                  <div className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-zinc-800 dark:text-gray-300">
-                    {track.genre}
-                  </div>
+                  {track.genre && (
+                    <div className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-zinc-800 dark:text-gray-300">
+                      {track.genre}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

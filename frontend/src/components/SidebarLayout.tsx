@@ -5,6 +5,7 @@ import {
   User, LogOut, Moon, Sun, Home, LogIn
 } from 'lucide-react';
 import { useTheme } from '../context/useTheme';
+import SmartPlayer from './SmartPlayer';
 
 export default function SidebarLayout() {
   const [isOpen, setIsOpen] = useState(true);
@@ -29,6 +30,7 @@ export default function SidebarLayout() {
   ];
 
   return (
+    <>
     <div className="flex h-screen overflow-hidden bg-gray-50 font-sans text-gray-900 transition-colors dark:bg-black dark:text-white">
       {/* Sidebar */}
       <aside
@@ -112,9 +114,11 @@ export default function SidebarLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="relative flex-1 overflow-y-auto bg-gray-50 dark:bg-black">
+      <main className="relative flex-1 overflow-y-auto bg-gray-50 pb-24 dark:bg-black">
         <Outlet /> {/* This injects Landing or Dashboard depending on the route */}
       </main>
     </div>
+    <SmartPlayer />
+    </>
   );
 }
