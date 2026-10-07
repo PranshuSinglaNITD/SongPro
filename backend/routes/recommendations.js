@@ -56,4 +56,36 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+router.post('/progression', auth, async (req, res) => {
+  try {
+    const { startQuery, endQuery, hourOfDay, steps } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const oceanArray = [
+      user.oceanScores.openness,
+      user.oceanScores.conscientiousness,
+      user.oceanScores.extraversion,
+      user.oceanScores.agreeableness,
+      user.oceanScores.neuroticism
+    ];
+
+    const mlResponse = await axios.post(`${FASTAPI_URL}/recommend/progression`, {
+      start_query: startQuery,
+      end_query: endQuery,
+      ocean: oceanArray,
+      hour_of_day: typeof hourOfDay === 'number' ? hourOfDay : new Date().getHours(),
+      steps: steps || 10
+    });
+
+    return res.json({ success: true, tracks: mlResponse.data });
+
+  } catch (error) {
+    console.error('Progression Route Failure:', error.response?.data || error.message);
+    return res.status(500).json({ error: 'Failed to generate mood progression.' });
+  }
+});
+
 module.exports = router;

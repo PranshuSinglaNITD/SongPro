@@ -23,6 +23,7 @@ export default function SidebarLayout() {
   const navItems = [
     { name: 'Home', icon: <Home size={20} />, path: '/home' },
     { name: 'AI Vibe Match', icon: <Sparkles size={20} />, path: '/dashboard' },
+    { name: 'Mood Regressor', icon: <Play size={20} />, path: '/moodprogression' },
     { name: 'Personality Profiler', icon: <Mic2 size={20} />, path: '/profile' }, // Future route
     { name: 'Smart Player', icon: <Play size={20} />, path: '/player' }, // Future route
   ];

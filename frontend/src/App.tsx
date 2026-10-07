@@ -8,6 +8,7 @@ import SidebarLayout from './components/SidebarLayout';
 import Quiz from './pages/Quiz';
 import Profile from './pages/Profile';
 import { ThemeProvider } from './context/ThemeContext';
+import MoodProgression from './pages/MoodProgression';
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moodprogression"
+            element={
+              <ProtectedRoute>
+                <MoodProgression />
               </ProtectedRoute>
             }
           />
